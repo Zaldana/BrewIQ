@@ -33,10 +33,6 @@ class BrewCalculatorViewModel {
         return selectedWaterUnit.fromMilliliters(waterInGrams) // 1g water ≈ 1ml
     }
     
-    var brewTime: TimeInterval {
-        selectedMethod.defaultTime
-    }
-    
     func clearInputs() {
         coffeeInput = ""
         waterInput = ""

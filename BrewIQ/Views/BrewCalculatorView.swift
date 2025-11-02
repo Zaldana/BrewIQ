@@ -163,7 +163,7 @@ struct BrewCalculatorView: View {
         }
         .onAppear {
             // Set initial method if current one is not in selected methods
-            if !availableMethods.contains(viewModel.selectedMethod) {
+            if !availableMethods.isEmpty && !availableMethods.contains(viewModel.selectedMethod) {
                 if let firstMethod = availableMethods.first {
                     viewModel.selectedMethod = firstMethod
                 }

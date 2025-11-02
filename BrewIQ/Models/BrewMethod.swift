@@ -23,24 +23,6 @@ enum BrewMethod: String, CaseIterable, Codable, Identifiable {
     
     var id: String { rawValue }
     
-    // Default timer duration in seconds
-    var defaultTime: TimeInterval {
-        switch self {
-        case .percolation: return 300  // 5:00
-        case .frenchPress: return 240  // 4:00
-        case .mokaPot: return 180      // 3:00
-        case .pourOver: return 210     // 3:30
-        case .dripCoffee: return 210   // 3:30
-        case .aeroPress: return 120    // 2:00
-        case .harioV60: return 210     // 3:30
-        case .chemex: return 240       // 4:00
-        case .kalitaWave: return 210   // 3:30
-        case .cleverDripper: return 180 // 3:00
-        case .siphonCoffee: return 240  // 4:00
-        case .vacuumCoffee: return 240  // 4:00
-        }
-    }
-    
     // Get ratio for specific strength (water:coffee)
     func ratio(for strength: BrewStrength) -> Double {
         switch self {
