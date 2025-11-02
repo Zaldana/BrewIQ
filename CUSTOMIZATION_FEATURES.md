@@ -5,9 +5,9 @@ This document describes the customization features added to BrewIQ, allowing use
 
 ## Features Implemented
 
-### 1. Method Selection (Max 6)
-- Users can select up to 6 brew methods to display on the main calculator screen
-- By default, the first 6 methods are selected: Pour Over, French Press, AeroPress, Hario V60, Chemex, Kalita Wave
+### 1. Method Selection (Max 9)
+- Users can select up to 9 brew methods to display on the main calculator screen
+- By default, the first 9 methods are selected: Pour Over, French Press, AeroPress, Hario V60, Chemex, Kalita Wave, Clever Dripper, Siphon Coffee, Vacuum Coffee
 - Selection is managed through the CustomizationView
 
 ### 2. Updated Brew Method Ratios
@@ -80,9 +80,9 @@ Available icons for custom methods:
 ## User Workflow
 
 1. **Select Methods**:
-   - Tap customize icon (top-right)
+   - Tap customize button (bottom of main screen)
    - See all 12 brew methods
-   - Tap to select/deselect (max 6)
+   - Tap to select/deselect (max 9)
    - Selected methods show checkmark
 
 2. **Customize Ratios**:
@@ -116,7 +116,9 @@ All customization data is stored in `UserPreferences` (SwiftData):
 
 ## Notes
 
-- The app defaults to showing the first 6 methods if no preferences exist
+- The app defaults to showing the first 9 methods if no preferences exist
 - Custom ratios take precedence over default ratios
 - Hario V60, Chemex, and Kalita Wave all use the same ratios as Pour Over
 - Method order in the enum prioritizes most popular methods first
+- The app now includes a splash screen on launch
+- Main calculator view fits on a single screen without scrolling

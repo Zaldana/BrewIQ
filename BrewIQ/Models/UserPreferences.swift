@@ -15,8 +15,18 @@ final class UserPreferences {
     var customMethods: [CustomBrewMethodData]
     
     init() {
-        // Default: First 6 methods
-        self.selectedMethodRawValues = Array(BrewMethod.allCases.prefix(6)).map { $0.rawValue }
+        // Default: Curated 9 methods
+        self.selectedMethodRawValues = [
+            "French Press",
+            "Moka Pot",
+            "Drip Coffee",
+            "AeroPress",
+            "Siphon Coffee",
+            "Chemex",
+            "Hario V60",
+            "Clever Dripper",
+            "Pour Over"
+        ]
         self.customRatios = [:]
         self.customMethods = []
     }

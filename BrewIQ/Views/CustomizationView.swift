@@ -41,7 +41,7 @@ struct CustomizationView: View {
                 } header: {
                     VStack(alignment: .leading, spacing: 4) {
                         Text("Select Brew Methods")
-                        Text("Choose up to 6 methods to display")
+                        Text("Choose up to 9 methods to display")
                             .font(.caption)
                             .foregroundStyle(.secondary)
                             .textCase(.none)
@@ -133,7 +133,7 @@ struct CustomizationView: View {
     private func toggleMethod(_ method: BrewMethod) {
         if let index = selectedMethodRawValues.firstIndex(of: method.rawValue) {
             selectedMethodRawValues.remove(at: index)
-        } else if selectedMethodRawValues.count < 6 {
+        } else if selectedMethodRawValues.count < 9 {
             selectedMethodRawValues.append(method.rawValue)
         }
     }

@@ -29,51 +29,9 @@ struct BrewCalculatorView: View {
     
     var body: some View {
         NavigationStack {
-            VStack(spacing: 16) {
-                // Brew Method Selection - Compact Grid
-                VStack(alignment: .leading, spacing: 8) {
-                    Text("Brew Method")
-                        .font(.subheadline)
-                        .fontWeight(.semibold)
-                        .padding(.horizontal)
-                        
-                    LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible()), GridItem(.flexible())], spacing: 8) {
-                        ForEach(availableMethods) { method in
-                            CompactMethodButton(
-                                method: method,
-                                ratio: userPrefs.getRatio(for: method, strength: viewModel.selectedStrength),
-                                isSelected: viewModel.selectedMethod == method
-                            ) {
-                                viewModel.selectedMethod = method
-                                viewModel.clearInputs()
-                            }
-                        }
-                    }
-                    .padding(.horizontal)
-                }
-                
-                // Strength Selection with Ratios
-                VStack(alignment: .leading, spacing: 8) {
-                    Text("Strength")
-                        .font(.subheadline)
-                        .fontWeight(.semibold)
-                    
-                    HStack(spacing: 8) {
-                        ForEach(BrewStrength.allCases) { strength in
-                            CompactStrengthButton(
-                                strength: strength,
-                                ratio: userPrefs.getRatio(for: viewModel.selectedMethod, strength: strength),
-                                isSelected: viewModel.selectedStrength == strength
-                            ) {
-                                viewModel.selectedStrength = strength
-                            }
-                        }
-                    }
-                }
-                .padding(.horizontal)
-                
-                // Calculator Card - Compact
-                VStack(spacing: 12) {
+            VStack(spacing: 14) {
+                // Calculator Card - Coffee and Water Fields
+                VStack(spacing: 10) {
                     // Coffee Input - shows calculated value when water is entered
                     InputCard(
                         label: "Coffee",
@@ -124,6 +82,48 @@ struct BrewCalculatorView: View {
                 .cornerRadius(16)
                 .padding(.horizontal)
                 
+                // Strength Selection with Ratios
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("Strength")
+                        .font(.subheadline)
+                        .fontWeight(.semibold)
+                    
+                    HStack(spacing: 8) {
+                        ForEach(BrewStrength.allCases) { strength in
+                            CompactStrengthButton(
+                                strength: strength,
+                                ratio: userPrefs.getRatio(for: viewModel.selectedMethod, strength: strength),
+                                isSelected: viewModel.selectedStrength == strength
+                            ) {
+                                viewModel.selectedStrength = strength
+                            }
+                        }
+                    }
+                }
+                .padding(.horizontal)
+                
+                // Brew Method Selection - Expanded Grid
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("Brew Method")
+                        .font(.subheadline)
+                        .fontWeight(.semibold)
+                        .padding(.horizontal)
+                        
+                    LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible()), GridItem(.flexible())], spacing: 10) {
+                        ForEach(availableMethods) { method in
+                            CompactMethodButton(
+                                method: method,
+                                ratio: userPrefs.getRatio(for: method, strength: viewModel.selectedStrength),
+                                isSelected: viewModel.selectedMethod == method
+                            ) {
+                                viewModel.selectedMethod = method
+                                viewModel.clearInputs()
+                            }
+                        }
+                    }
+                    .padding(.horizontal)
+                }
+                
                 Spacer(minLength: 0)
                 
                 // Customize Button
@@ -173,10 +173,10 @@ struct CompactMethodButton: View {
                     .font(.caption2)
                     .lineLimit(2)
                     .multilineTextAlignment(.center)
-                    .minimumScaleFactor(0.8)
+                    .minimumScaleFactor(0.7)
             }
             .frame(maxWidth: .infinity)
-            .frame(height: 70)
+            .frame(height: 68)
             .background(isSelected ? Color.brewPrimary : Color.brewSecondary)
             .foregroundStyle(isSelected ? Color.brewTextOnPrimary : .primary)
             .cornerRadius(12)
@@ -202,7 +202,7 @@ struct CompactStrengthButton: View {
                     .opacity(0.8)
             }
             .frame(maxWidth: .infinity)
-            .padding(.vertical, 14)
+            .padding(.vertical, 12)
             .background(isSelected ? Color.brewPrimary : Color.brewSecondary)
             .foregroundStyle(isSelected ? Color.brewTextOnPrimary : .primary)
             .cornerRadius(12)
