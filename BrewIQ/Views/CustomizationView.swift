@@ -15,7 +15,6 @@ struct CustomizationView: View {
     @State private var selectedMethodRawValues: [String] = []
     @State private var customRatios: [String: CustomRatio] = [:]
     @State private var showingAddCustomMethod = false
-    @State private var editingMethod: BrewMethod?
     
     private var userPrefs: UserPreferences {
         if let prefs = preferences.first {
@@ -31,13 +30,16 @@ struct CustomizationView: View {
         List {
                 // Method Selection Section
                 Section {
-                    ForEach(BrewMethod.allCases) { method in
-                        MethodSelectionRow(
-                            method: method,
-                            isSelected: selectedMethodRawValues.contains(method.rawValue),
-                            onToggle: { toggleMethod(method) }
-                        )
+                    LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible()), GridItem(.flexible())], spacing: 10) {
+                        ForEach(BrewMethod.allCases) { method in
+                            MethodSelectionButton(
+                                method: method,
+                                isSelected: selectedMethodRawValues.contains(method.rawValue),
+                                onToggle: { toggleMethod(method) }
+                            )
+                        }
                     }
+                    .padding(.vertical, 8)
                 } header: {
                     VStack(alignment: .leading, spacing: 4) {
                         Text("Select Brew Methods")
@@ -50,26 +52,19 @@ struct CustomizationView: View {
                 
                 // Customize Ratios Section
                 Section("Customize Ratios") {
-                    ForEach(selectedMethodRawValues.compactMap { BrewMethod(rawValue: $0) }) { method in
-                        Button {
-                            editingMethod = method
-                        } label: {
-                            HStack {
-                                Image(systemName: method.icon)
-                                    .foregroundStyle(Color.brewPrimary)
-                                Text(method.rawValue)
-                                    .foregroundStyle(.primary)
-                                Spacer()
-                                if customRatios[method.rawValue] != nil {
-                                    Image(systemName: "checkmark.circle.fill")
-                                        .foregroundStyle(.green)
-                                        .font(.caption)
-                                }
-                                Image(systemName: "chevron.right")
-                                    .font(.caption)
-                                    .foregroundStyle(.secondary)
+                    ForEach(BrewMethod.allCases) { method in
+                        RatioDisclosureGroup(
+                            method: method,
+                            customRatio: customRatios[method.rawValue],
+                            onSave: { ratio in
+                                customRatios[method.rawValue] = ratio
+                                savePreferences()
+                            },
+                            onReset: {
+                                customRatios.removeValue(forKey: method.rawValue)
+                                savePreferences()
                             }
-                        }
+                        )
                     }
                 }
                 
@@ -101,20 +96,6 @@ struct CustomizationView: View {
         #if os(iOS)
         .navigationBarTitleDisplayMode(.inline)
         #endif
-        .sheet(item: $editingMethod) { method in
-            RatioEditorView(
-                method: method,
-                customRatio: customRatios[method.rawValue],
-                onSave: { ratio in
-                    customRatios[method.rawValue] = ratio
-                    savePreferences()
-                },
-                onReset: {
-                    customRatios.removeValue(forKey: method.rawValue)
-                    savePreferences()
-                }
-            )
-        }
         .sheet(isPresented: $showingAddCustomMethod) {
             AddCustomMethodView { customMethod in
                 userPrefs.customMethods.append(customMethod)
@@ -151,41 +132,35 @@ struct CustomizationView: View {
     }
 }
 
-// MARK: - Method Selection Row
-struct MethodSelectionRow: View {
+// MARK: - Method Selection Button
+struct MethodSelectionButton: View {
     let method: BrewMethod
     let isSelected: Bool
     let onToggle: () -> Void
     
     var body: some View {
         Button(action: onToggle) {
-            HStack {
+            VStack(spacing: 6) {
                 Image(systemName: method.icon)
-                    .foregroundStyle(isSelected ? Color.brewPrimary : .secondary)
-                    .frame(width: 30)
-                
-                VStack(alignment: .leading, spacing: 2) {
-                    Text(method.rawValue)
-                        .foregroundStyle(.primary)
-                    Text("Mild: 1:\(String(format: "%.1f", method.ratio(for: .mild))) • Medium: 1:\(String(format: "%.1f", method.ratio(for: .medium))) • Bold: 1:\(String(format: "%.1f", method.ratio(for: .bold)))")
-                        .font(.caption2)
-                        .foregroundStyle(.secondary)
-                }
-                
-                Spacer()
-                
-                if isSelected {
-                    Image(systemName: "checkmark.circle.fill")
-                        .foregroundStyle(Color.brewPrimary)
-                }
+                    .font(.title3)
+                Text(method.rawValue)
+                    .font(.caption2)
+                    .lineLimit(2)
+                    .multilineTextAlignment(.center)
+                    .minimumScaleFactor(0.7)
             }
+            .frame(maxWidth: .infinity)
+            .frame(height: 68)
+            .background(isSelected ? Color.brewPrimary : Color.brewSecondary)
+            .foregroundStyle(isSelected ? Color.brewTextOnPrimary : .primary)
+            .cornerRadius(12)
         }
+        .buttonStyle(.plain)
     }
 }
 
-// MARK: - Ratio Editor View
-struct RatioEditorView: View {
-    @Environment(\.dismiss) private var dismiss
+// MARK: - Ratio Disclosure Group
+struct RatioDisclosureGroup: View {
     let method: BrewMethod
     let customRatio: CustomRatio?
     let onSave: (CustomRatio) -> Void
@@ -194,75 +169,124 @@ struct RatioEditorView: View {
     @State private var mildRatio: String = ""
     @State private var mediumRatio: String = ""
     @State private var boldRatio: String = ""
+    @State private var isExpanded: Bool = false
     
     var body: some View {
-        NavigationStack {
-            Form {
-                Section {
-                    HStack {
-                        Image(systemName: method.icon)
-                            .font(.title2)
-                            .foregroundStyle(Color.brewPrimary)
-                        Text(method.rawValue)
-                            .font(.headline)
+        VStack(spacing: 0) {
+            Button(action: {
+                withAnimation {
+                    isExpanded.toggle()
+                }
+            }) {
+                HStack(spacing: 12) {
+                    Image(systemName: method.icon)
+                        .font(.title3)
+                        .foregroundStyle(Color.brewPrimary)
+                        .frame(width: 30)
+                    Text(method.rawValue)
+                        .font(.body)
+                        .foregroundStyle(.primary)
+                    Spacer()
+                    if customRatio != nil {
+                        Image(systemName: "checkmark.circle.fill")
+                            .foregroundStyle(.green)
+                            .font(.body)
                     }
+                    Image(systemName: isExpanded ? "chevron.up" : "chevron.down")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
                 }
-                
-                Section("Default Ratios") {
-                    RatioInfoRow(label: "Mild", ratio: method.ratio(for: .mild))
-                    RatioInfoRow(label: "Medium", ratio: method.ratio(for: .medium))
-                    RatioInfoRow(label: "Bold", ratio: method.ratio(for: .bold))
-                }
-                
-                Section("Custom Ratios") {
-                    RatioInputRow(label: "Mild", ratio: $mildRatio)
-                    RatioInputRow(label: "Medium", ratio: $mediumRatio)
-                    RatioInputRow(label: "Bold", ratio: $boldRatio)
-                }
-                
-                Section {
-                    Button(role: .destructive) {
-                        onReset()
-                        dismiss()
-                    } label: {
-                        Label("Reset to Default", systemImage: "arrow.counterclockwise")
-                            .frame(maxWidth: .infinity)
-                    }
-                }
+                .contentShape(Rectangle())
+                .padding(.vertical, 8)
             }
-            .navigationTitle("Edit Ratios")
-            #if os(iOS)
-            .navigationBarTitleDisplayMode(.inline)
-            #endif
-            .toolbar {
-                ToolbarItem(placement: .cancellationAction) {
-                    Button("Cancel") {
-                        dismiss()
+            .buttonStyle(.plain)
+            
+            if isExpanded {
+                VStack(spacing: 12) {
+                // Default Ratios
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("Default")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                    HStack {
+                        RatioChip(label: "Mild", ratio: method.ratio(for: .mild))
+                        RatioChip(label: "Medium", ratio: method.ratio(for: .medium))
+                        RatioChip(label: "Bold", ratio: method.ratio(for: .bold))
                     }
                 }
-                ToolbarItem(placement: .confirmationAction) {
-                    Button("Save") {
+                
+                Divider()
+                
+                // Custom Ratios
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("Custom")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                    
+                    RatioInputRow(label: "Mild", ratio: $mildRatio)
+                        .padding(.vertical, 4)
+                    RatioInputRow(label: "Medium", ratio: $mediumRatio)
+                        .padding(.vertical, 4)
+                    RatioInputRow(label: "Bold", ratio: $boldRatio)
+                        .padding(.vertical, 4)
+                }
+                
+                // Action Buttons
+                HStack(spacing: 12) {
+                    Button(action: {
+                        onReset()
+                        loadDefaults()
+                    }) {
+                        Text("Reset")
+                            .font(.body)
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, 12)
+                            .background(Color.brewSecondary)
+                            .foregroundStyle(Color.primary)
+                            .cornerRadius(10)
+                    }
+                    .buttonStyle(.plain)
+                    
+                    Button(action: {
                         if let mild = Double(mildRatio),
                            let medium = Double(mediumRatio),
                            let bold = Double(boldRatio) {
                             onSave(CustomRatio(mild: mild, medium: medium, bold: bold))
-                            dismiss()
+                            isExpanded = false
                         }
+                    }) {
+                        Text("Apply")
+                            .font(.body)
+                            .fontWeight(.semibold)
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, 12)
+                            .background(isValid ? Color.brewPrimary : Color.brewSecondary)
+                            .foregroundStyle(isValid ? Color.brewTextOnPrimary : Color.primary.opacity(0.5))
+                            .cornerRadius(10)
                     }
+                    .buttonStyle(.plain)
                     .disabled(!isValid)
                 }
-            }
-            .onAppear {
-                if let custom = customRatio {
-                    mildRatio = String(format: "%.1f", custom.mild)
-                    mediumRatio = String(format: "%.1f", custom.medium)
-                    boldRatio = String(format: "%.1f", custom.bold)
-                } else {
-                    mildRatio = String(format: "%.1f", method.ratio(for: .mild))
-                    mediumRatio = String(format: "%.1f", method.ratio(for: .medium))
-                    boldRatio = String(format: "%.1f", method.ratio(for: .bold))
                 }
+                .padding(.vertical, 8)
+                .padding(.horizontal)
+                .background(Color.brewSecondary.opacity(0.3))
             }
+        }
+        .onAppear {
+            loadDefaults()
+        }
+    }
+    
+    private func loadDefaults() {
+        if let custom = customRatio {
+            mildRatio = String(format: "%.1f", custom.mild)
+            mediumRatio = String(format: "%.1f", custom.medium)
+            boldRatio = String(format: "%.1f", custom.bold)
+        } else {
+            mildRatio = String(format: "%.1f", method.ratio(for: .mild))
+            mediumRatio = String(format: "%.1f", method.ratio(for: .medium))
+            boldRatio = String(format: "%.1f", method.ratio(for: .bold))
         }
     }
     
@@ -271,17 +295,23 @@ struct RatioEditorView: View {
     }
 }
 
-struct RatioInfoRow: View {
+struct RatioChip: View {
     let label: String
     let ratio: Double
     
     var body: some View {
-        HStack {
+        VStack(spacing: 2) {
             Text(label)
-            Spacer()
-            Text("1 : \(String(format: "%.1f", ratio))")
+                .font(.caption2)
                 .foregroundStyle(.secondary)
+            Text("1:\(String(format: "%.1f", ratio))")
+                .font(.caption)
+                .fontWeight(.medium)
         }
+        .frame(maxWidth: .infinity)
+        .padding(.vertical, 6)
+        .background(Color.brewSecondary.opacity(0.5))
+        .cornerRadius(6)
     }
 }
 
@@ -292,15 +322,19 @@ struct RatioInputRow: View {
     var body: some View {
         HStack {
             Text(label)
+                .font(.body)
             Spacer()
             Text("1 :")
+                .font(.body)
                 .foregroundStyle(.secondary)
             TextField("Ratio", text: $ratio)
                 #if os(iOS)
                 .keyboardType(.decimalPad)
                 #endif
+                .font(.body)
                 .multilineTextAlignment(.trailing)
-                .frame(width: 60)
+                .frame(width: 70)
+                .textFieldStyle(.roundedBorder)
         }
     }
 }
