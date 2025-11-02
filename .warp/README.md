@@ -6,8 +6,8 @@ A SwiftUI-based iOS coffee brewing calculator and timer app that helps coffee en
 
 BrewIQ is an iOS application built with SwiftUI and SwiftData that provides:
 - **Brew Calculator**: Calculate precise coffee-to-water ratios for various brewing methods
-- **Settings**: Customize preferences including measurement units and color themes
-- **Custom Brew Methods**: Save and manage your own brewing recipes
+- **Method Customization**: Select up to 6 brew methods to display, customize ratios, and add custom methods
+- **Flexible Ratios**: Customize mild, medium, and bold ratios for any brew method with reset-to-default option
 
 ## Tech Stack
 
@@ -34,30 +34,36 @@ BrewIQ/
 │   │   └── BrewCalculatorViewModel.swift
 │   └── Views/                    # UI components
 │       ├── BrewCalculatorView.swift
-│       └── SettingsView.swift
+│       └── CustomizationView.swift
 ├── BrewIQTests/                  # Unit tests
 └── BrewIQUITests/                # UI tests
 ```
 
 ## Supported Brew Methods
 
-The app includes 12 pre-configured brewing methods:
-- Percolation
-- French Press
-- Moka Pot
-- Pour Over
-- Drip Coffee
-- AeroPress
-- Hario V60
-- Chemex
-- Kalita Wave
-- Clever Dripper
-- Siphon Coffee
-- Vacuum Coffee
+The app includes 12 pre-configured brewing methods (select up to 6 to display):
+- Pour Over (default: 17/16/15)
+- French Press (default: 17/15/13)
+- AeroPress (default: 15/13/11)
+- Hario V60 (default: 17/16/15)
+- Chemex (default: 17/16/15)
+- Kalita Wave (default: 17/16/15)
+- Clever Dripper (default: 17/16/15)
+- Siphon Coffee (default: 17/16/14)
+- Vacuum Coffee (default: 17/15.5/14)
+- Moka Pot (default: 12/10/8)
+- Drip Coffee (default: 17/16/15)
+- Percolation (default: 18/16/14)
 
-Each method has customized:
-- Coffee-to-water ratios (by strength: mild, medium, strong)
+Each method has:
+- Default coffee-to-water ratios (mild/medium/bold)
+- Customizable ratios that can be reset to defaults
 - Custom icon
+
+**Custom Methods**: Users can add their own brew methods with:
+- Custom name (up to 15 characters)
+- Custom icon selection
+- Custom mild/medium/bold ratios
 
 ## Quick Commands
 
@@ -91,8 +97,15 @@ git status
 ### Brew Calculator
 - Calculate coffee amount from water input (or vice versa)
 - Support for both metric (ml, g) and imperial (oz) units
-- Adjustable strength settings (mild, medium, strong)
+- Adjustable strength settings (mild, medium, bold)
 - Real-time calculation updates
+
+### Customization
+- Select up to 6 brew methods to display on main screen
+- Customize ratios for each brew method (mild, medium, bold)
+- Reset individual methods to default ratios
+- Add custom brew methods with custom names, icons, and ratios
+- Delete custom brew methods
 
 ### Settings
 - Measurement unit preferences
@@ -108,6 +121,11 @@ git status
 
 ## Recent Changes
 
+- ✅ Added customization view with method selection (max 6)
+- ✅ Added ratio customization for all brew methods
+- ✅ Added custom brew method creation
+- ✅ Updated brew method ratios (Clever Dripper, Siphon, Vacuum)
+- ✅ Replaced hamburger menu with customize icon
 - ✅ Removed timer functionality
 - ✅ Settings view and user preferences implementation
 - ✅ Basic features (calculator, brew methods)

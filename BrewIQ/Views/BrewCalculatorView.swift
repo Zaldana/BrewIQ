@@ -12,7 +12,6 @@ struct BrewCalculatorView: View {
     @Environment(\.modelContext) private var modelContext
     @Query private var preferences: [UserPreferences]
     @State private var viewModel = BrewCalculatorViewModel()
-    @State private var showSettings = false
     
     private var userPrefs: UserPreferences {
         if let prefs = preferences.first {
@@ -30,136 +29,121 @@ struct BrewCalculatorView: View {
     
     var body: some View {
         NavigationStack {
-            ScrollView {
-                VStack(spacing: 24) {
-                    // Header with Settings Button
-                    HStack {
-                        Spacer()
-                        VStack(spacing: 4) {
-                            HStack(spacing: 8) {
-                                Image(systemName: "cup.and.saucer.fill")
-                                    .font(.title)
-                                    .foregroundStyle(Color.brewPrimary)
-                                Text("BrewRatio")
-                                    .font(.title)
-                                    .fontWeight(.bold)
-                            }
-                            Text("Perfect coffee, every time")
-                                .font(.caption)
-                                .foregroundStyle(.secondary)
-                        }
-                        Spacer()
-                    }
-                    .padding(.top, 8)
-                    .overlay(alignment: .trailing) {
-                        Button(action: { showSettings = true }) {
-                            Image(systemName: "line.3.horizontal")
-                                .font(.title3)
-                                .foregroundStyle(Color.brewPrimary)
-                                .padding(.trailing)
-                        }
-                    }
-                    
-                    // Brew Method Selection - Compact Grid
-                    VStack(alignment: .leading, spacing: 8) {
-                        Text("Brew Method")
-                            .font(.subheadline)
-                            .fontWeight(.semibold)
-                            .padding(.horizontal)
-                        
-                        LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible()), GridItem(.flexible())], spacing: 10) {
-                            ForEach(availableMethods) { method in
-                                CompactMethodButton(
-                                    method: method,
-                                    ratio: userPrefs.getRatio(for: method, strength: viewModel.selectedStrength),
-                                    isSelected: viewModel.selectedMethod == method
-                                ) {
-                                    viewModel.selectedMethod = method
-                                    viewModel.clearInputs()
-                                }
-                            }
-                        }
+            VStack(spacing: 16) {
+                // Brew Method Selection - Compact Grid
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("Brew Method")
+                        .font(.subheadline)
+                        .fontWeight(.semibold)
                         .padding(.horizontal)
-                    }
-                    
-                    // Strength Selection with Ratios
-                    VStack(alignment: .leading, spacing: 8) {
-                        Text("Strength")
-                            .font(.subheadline)
-                            .fontWeight(.semibold)
                         
-                        HStack(spacing: 8) {
-                            ForEach(BrewStrength.allCases) { strength in
-                                CompactStrengthButton(
-                                    strength: strength,
-                                    ratio: userPrefs.getRatio(for: viewModel.selectedMethod, strength: strength),
-                                    isSelected: viewModel.selectedStrength == strength
-                                ) {
-                                    viewModel.selectedStrength = strength
-                                }
+                    LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible()), GridItem(.flexible())], spacing: 8) {
+                        ForEach(availableMethods) { method in
+                            CompactMethodButton(
+                                method: method,
+                                ratio: userPrefs.getRatio(for: method, strength: viewModel.selectedStrength),
+                                isSelected: viewModel.selectedMethod == method
+                            ) {
+                                viewModel.selectedMethod = method
+                                viewModel.clearInputs()
                             }
                         }
                     }
                     .padding(.horizontal)
+                }
+                
+                // Strength Selection with Ratios
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("Strength")
+                        .font(.subheadline)
+                        .fontWeight(.semibold)
                     
-                    // Calculator Card - iPhone Optimized
-                    VStack(spacing: 16) {
-                        // Coffee Input - shows calculated value when water is entered
+                    HStack(spacing: 8) {
+                        ForEach(BrewStrength.allCases) { strength in
+                            CompactStrengthButton(
+                                strength: strength,
+                                ratio: userPrefs.getRatio(for: viewModel.selectedMethod, strength: strength),
+                                isSelected: viewModel.selectedStrength == strength
+                            ) {
+                                viewModel.selectedStrength = strength
+                            }
+                        }
+                    }
+                }
+                .padding(.horizontal)
+                
+                // Calculator Card - Compact
+                VStack(spacing: 12) {
+                    // Coffee Input - shows calculated value when water is entered
+                    InputCard(
+                        label: "Coffee",
+                        unit: "g",
+                        input: $viewModel.coffeeInput,
+                        calculatedValue: viewModel.calculatedCoffee,
+                        onEdit: { viewModel.waterInput = "" },
+                        formatValue: viewModel.formatValue
+                    )
+                    
+                    // Divider
+                    HStack {
+                        Rectangle()
+                            .fill(Color.secondary.opacity(0.3))
+                            .frame(height: 1)
+                        Text("OR")
+                            .font(.caption2)
+                            .foregroundStyle(.secondary)
+                            .padding(.horizontal, 8)
+                        Rectangle()
+                            .fill(Color.secondary.opacity(0.3))
+                            .frame(height: 1)
+                    }
+                    .padding(.vertical, 4)
+                    
+                    // Water Input with Unit Picker
+                    VStack(spacing: 8) {
                         InputCard(
-                            label: "Coffee",
-                            unit: "g",
-                            input: $viewModel.coffeeInput,
-                            calculatedValue: viewModel.calculatedCoffee,
-                            onEdit: { viewModel.waterInput = "" },
+                            label: "Water",
+                            unit: viewModel.selectedWaterUnit.rawValue,
+                            input: $viewModel.waterInput,
+                            calculatedValue: viewModel.calculatedWater,
+                            onEdit: { viewModel.coffeeInput = "" },
                             formatValue: viewModel.formatValue
                         )
                         
-                        // Divider
-                        HStack {
-                            Rectangle()
-                                .fill(Color.secondary.opacity(0.3))
-                                .frame(height: 1)
-                            Text("OR")
-                                .font(.caption2)
-                                .foregroundStyle(.secondary)
-                                .padding(.horizontal, 8)
-                            Rectangle()
-                                .fill(Color.secondary.opacity(0.3))
-                                .frame(height: 1)
-                        }
-                        .padding(.vertical, 4)
-                        
-                        // Water Input with Unit Picker
-                        VStack(spacing: 12) {
-                            InputCard(
-                                label: "Water",
-                                unit: viewModel.selectedWaterUnit.rawValue,
-                                input: $viewModel.waterInput,
-                                calculatedValue: viewModel.calculatedWater,
-                                onEdit: { viewModel.coffeeInput = "" },
-                                formatValue: viewModel.formatValue
-                            )
-                            
-                            // Water unit picker integrated
-                            Picker("", selection: $viewModel.selectedWaterUnit) {
-                                ForEach(WaterUnit.allCases) { unit in
-                                    Text(unit.rawValue).tag(unit)
-                                }
+                        // Water unit picker integrated
+                        Picker("", selection: $viewModel.selectedWaterUnit) {
+                            ForEach(WaterUnit.allCases) { unit in
+                                Text(unit.rawValue).tag(unit)
                             }
-                            .pickerStyle(.segmented)
                         }
+                        .pickerStyle(.segmented)
                     }
-                    .padding()
-                    .background(Color.brewCardBackground)
-                    .cornerRadius(16)
-                    .padding(.horizontal)
-                    
-                    Spacer()
                 }
+                .padding()
+                .background(Color.brewCardBackground)
+                .cornerRadius(16)
+                .padding(.horizontal)
+                
+                Spacer(minLength: 0)
+                
+                // Customize Button
+                NavigationLink(destination: CustomizationView()) {
+                    HStack {
+                        Image(systemName: "slider.horizontal.3")
+                        Text("Customize")
+                            .fontWeight(.medium)
+                    }
+                    .frame(maxWidth: .infinity)
+                    .padding()
+                    .background(Color.brewSecondary)
+                    .foregroundStyle(Color.brewPrimary)
+                    .cornerRadius(12)
+                }
+                .buttonStyle(.plain)
+                .padding(.horizontal)
+                .padding(.bottom, 8)
             }
-            .sheet(isPresented: $showSettings) {
-                SettingsView()
-            }
+            .padding(.top, 8)
         }
         .onAppear {
             // Set initial method if current one is not in selected methods
