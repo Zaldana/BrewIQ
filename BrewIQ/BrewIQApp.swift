@@ -13,6 +13,7 @@ struct BrewIQApp: App {
     var sharedModelContainer: ModelContainer = {
         let schema = Schema([
             CustomBrewMethod.self,
+            UserPreferences.self,
         ])
         let modelConfiguration = ModelConfiguration(schema: schema, isStoredInMemoryOnly: false)
 

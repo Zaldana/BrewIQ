@@ -6,28 +6,59 @@
 //
 
 import SwiftUI
+import SwiftData
 
 struct BrewCalculatorView: View {
+    @Environment(\.modelContext) private var modelContext
+    @Query private var preferences: [UserPreferences]
     @State private var viewModel = BrewCalculatorViewModel()
+    @State private var showSettings = false
+    
+    private var userPrefs: UserPreferences {
+        if let prefs = preferences.first {
+            return prefs
+        } else {
+            let newPrefs = UserPreferences()
+            modelContext.insert(newPrefs)
+            return newPrefs
+        }
+    }
+    
+    private var availableMethods: [BrewMethod] {
+        userPrefs.selectedMethods
+    }
     
     var body: some View {
-        ScrollView {
+        NavigationStack {
+            ScrollView {
                 VStack(spacing: 24) {
-                    // Compact Header
-                    VStack(spacing: 4) {
-                        HStack(spacing: 8) {
-                            Image(systemName: "cup.and.saucer.fill")
-                                .font(.title)
-                                .foregroundStyle(Color.brewPrimary)
-                            Text("BrewRatio")
-                                .font(.title)
-                                .fontWeight(.bold)
+                    // Header with Settings Button
+                    HStack {
+                        Spacer()
+                        VStack(spacing: 4) {
+                            HStack(spacing: 8) {
+                                Image(systemName: "cup.and.saucer.fill")
+                                    .font(.title)
+                                    .foregroundStyle(Color.brewPrimary)
+                                Text("BrewRatio")
+                                    .font(.title)
+                                    .fontWeight(.bold)
+                            }
+                            Text("Perfect coffee, every time")
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
                         }
-                        Text("Perfect coffee, every time")
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
+                        Spacer()
                     }
                     .padding(.top, 8)
+                    .overlay(alignment: .trailing) {
+                        Button(action: { showSettings = true }) {
+                            Image(systemName: "line.3.horizontal")
+                                .font(.title3)
+                                .foregroundStyle(Color.brewPrimary)
+                                .padding(.trailing)
+                        }
+                    }
                     
                     // Brew Method Selection - Compact Grid
                     VStack(alignment: .leading, spacing: 8) {
@@ -37,9 +68,10 @@ struct BrewCalculatorView: View {
                             .padding(.horizontal)
                         
                         LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible()), GridItem(.flexible())], spacing: 10) {
-                            ForEach(BrewMethod.allCases) { method in
+                            ForEach(availableMethods) { method in
                                 CompactMethodButton(
                                     method: method,
+                                    ratio: userPrefs.getRatio(for: method, strength: viewModel.selectedStrength),
                                     isSelected: viewModel.selectedMethod == method
                                 ) {
                                     viewModel.selectedMethod = method
@@ -60,7 +92,7 @@ struct BrewCalculatorView: View {
                             ForEach(BrewStrength.allCases) { strength in
                                 CompactStrengthButton(
                                     strength: strength,
-                                    ratio: viewModel.selectedMethod.ratio(for: strength),
+                                    ratio: userPrefs.getRatio(for: viewModel.selectedMethod, strength: strength),
                                     isSelected: viewModel.selectedStrength == strength
                                 ) {
                                     viewModel.selectedStrength = strength
@@ -125,6 +157,18 @@ struct BrewCalculatorView: View {
                     Spacer()
                 }
             }
+            .sheet(isPresented: $showSettings) {
+                SettingsView()
+            }
+        }
+        .onAppear {
+            // Set initial method if current one is not in selected methods
+            if !availableMethods.contains(viewModel.selectedMethod) {
+                if let firstMethod = availableMethods.first {
+                    viewModel.selectedMethod = firstMethod
+                }
+            }
+        }
     }
 }
 
@@ -132,6 +176,7 @@ struct BrewCalculatorView: View {
 
 struct CompactMethodButton: View {
     let method: BrewMethod
+    let ratio: Double
     let isSelected: Bool
     let action: () -> Void
     
