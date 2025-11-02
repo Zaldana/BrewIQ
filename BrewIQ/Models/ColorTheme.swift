@@ -8,26 +8,36 @@
 import SwiftUI
 
 extension Color {
-    // Cherry Blossom Latte Color Palette with Dark Mode Support
+    // Monochrome theme with orange accents
     
-    // Primary - Rose pink (light) / Deeper rose (dark)
-    static let brewPrimary = Color(light: Color(red: 0.8, green: 0.5, blue: 0.5),
-                                    dark: Color(red: 0.9, green: 0.6, blue: 0.6))
+    // Primary - Mint blue accent color (darker for better contrast)
+    static let brewPrimary = Color(light: Color(red: 0.2, green: 0.6, blue: 0.55),
+                                    dark: Color(red: 0.25, green: 0.65, blue: 0.6))
     
-    // Secondary - Cream (light) / Muted cocoa (dark)
-    static let brewSecondary = Color(light: Color(red: 0.95, green: 0.9, blue: 0.88),
-                                      dark: Color(red: 0.3, green: 0.25, blue: 0.23))
+    // Mint blue gradient colors (darker for better contrast)
+    static let brewPrimaryGradientStart = Color(light: Color(red: 0.15, green: 0.5, blue: 0.45),
+                                                 dark: Color(red: 0.2, green: 0.55, blue: 0.5))
+    static let brewPrimaryGradientEnd = Color(light: Color(red: 0.25, green: 0.7, blue: 0.65),
+                                               dark: Color(red: 0.3, green: 0.75, blue: 0.7))
     
-    // Accent - Cocoa (light & dark adaptive)
-    static let brewAccent = Color(light: Color(red: 0.5, green: 0.35, blue: 0.3),
-                                   dark: Color(red: 0.85, green: 0.65, blue: 0.55))
+    // Secondary - Grey tones
+    static let brewSecondary = Color(light: Color.gray.opacity(0.3),
+                                      dark: Color.gray.opacity(0.3))
     
-    // Card background - Soft cream (light) / Dark cocoa (dark)
-    static let brewCardBackground = Color(light: Color(red: 0.98, green: 0.95, blue: 0.93),
-                                           dark: Color(red: 0.25, green: 0.2, blue: 0.18))
+    // Accent - Mint blue (darker for better contrast)
+    static let brewAccent = Color(light: Color(red: 0.2, green: 0.6, blue: 0.55),
+                                   dark: Color(red: 0.25, green: 0.65, blue: 0.6))
     
-    // Text on colored backgrounds - Always high contrast
+    // Card background - White/Black with subtle grey
+    static let brewCardBackground = Color(light: Color.white.opacity(0.9),
+                                           dark: Color.black.opacity(0.8))
+    
+    // Text on colored backgrounds - White on orange
     static let brewTextOnPrimary = Color.white
+    
+    // Background gradient colors
+    static let brewBackgroundTop = Color(light: Color(white: 0.95), dark: Color(white: 0.05))
+    static let brewBackgroundBottom = Color(light: Color(white: 0.90), dark: Color(white: 0.0))
     
     // Helper initializer for light/dark mode
     private init(light: Color, dark: Color) {
@@ -41,4 +51,13 @@ extension Color {
         })
         #endif
     }
+}
+
+extension LinearGradient {
+    // Mint blue gradient
+    static let brewPrimaryGradient = LinearGradient(
+        colors: [.brewPrimaryGradientStart, .brewPrimaryGradientEnd],
+        startPoint: .topLeading,
+        endPoint: .bottomTrailing
+    )
 }

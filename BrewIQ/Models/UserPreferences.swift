@@ -8,11 +8,28 @@
 import Foundation
 import SwiftData
 
+enum AppTheme: String, Codable, CaseIterable, Identifiable {
+    case light = "Light"
+    case dark = "Dark"
+    case auto = "Auto"
+    
+    var id: String { rawValue }
+    
+    var icon: String {
+        switch self {
+        case .light: return "sun.max.fill"
+        case .dark: return "moon.fill"
+        case .auto: return "circle.lefthalf.filled"
+        }
+    }
+}
+
 @Model
 final class UserPreferences {
     var selectedMethodRawValues: [String] // Store selected brew method IDs (max 6)
     var customRatios: [String: CustomRatio] // Method rawValue -> CustomRatio
     var customMethods: [CustomBrewMethodData]
+    var themeRawValue: String = AppTheme.auto.rawValue // Store theme preference with default
     
     init() {
         // Default: Curated 9 methods
@@ -29,10 +46,16 @@ final class UserPreferences {
         ]
         self.customRatios = [:]
         self.customMethods = []
+        self.themeRawValue = AppTheme.auto.rawValue
     }
     
     var selectedMethods: [BrewMethod] {
         selectedMethodRawValues.compactMap { BrewMethod(rawValue: $0) }
+    }
+    
+    var theme: AppTheme {
+        get { AppTheme(rawValue: themeRawValue) ?? .auto }
+        set { themeRawValue = newValue.rawValue }
     }
     
     func getRatio(for method: BrewMethod, strength: BrewStrength) -> Double {

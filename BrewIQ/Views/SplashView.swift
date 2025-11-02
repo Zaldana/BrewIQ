@@ -24,7 +24,7 @@ struct SplashView: View {
                         .font(.system(size: 80))
                         .foregroundStyle(Color.brewPrimary)
                     
-                    Text("BrewRatio")
+                    Text("brewIQ")
                         .font(.system(size: 40, weight: .bold))
                         .foregroundStyle(Color.brewPrimary)
                     

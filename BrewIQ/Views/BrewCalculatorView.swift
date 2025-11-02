@@ -29,9 +29,35 @@ struct BrewCalculatorView: View {
     
     var body: some View {
         NavigationStack {
-            VStack(spacing: 14) {
+            ZStack {
+                // Gradient Background
+                LinearGradient(
+                    gradient: Gradient(colors: [
+                        Color.brewBackgroundTop,
+                        Color.brewBackgroundBottom
+                    ]),
+                    startPoint: .topLeading,
+                    endPoint: .bottomTrailing
+                )
+                .ignoresSafeArea()
+                
+                VStack(spacing: 12) {
+                // App Title
+                Text("brewIQ")
+                    .font(.system(size: 20, weight: .bold))
+                    .foregroundStyle(
+                        LinearGradient(
+                            gradient: Gradient(colors: [Color.brewPrimary, Color.brewAccent]),
+                            startPoint: .leading,
+                            endPoint: .trailing
+                        )
+                    )
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(.horizontal)
+                    .padding(.top, 4)
+                
                 // Calculator Card - Coffee and Water Fields
-                VStack(spacing: 10) {
+                VStack(spacing: 6) {
                     // Coffee Input - shows calculated value when water is entered
                     InputCard(
                         label: "Coffee",
@@ -55,10 +81,10 @@ struct BrewCalculatorView: View {
                             .fill(Color.secondary.opacity(0.3))
                             .frame(height: 1)
                     }
-                    .padding(.vertical, 4)
+                    .padding(.vertical, 2)
                     
                     // Water Input with Unit Picker
-                    VStack(spacing: 8) {
+                    VStack(spacing: 6) {
                         InputCard(
                             label: "Water",
                             unit: viewModel.selectedWaterUnit.rawValue,
@@ -69,24 +95,30 @@ struct BrewCalculatorView: View {
                         )
                         
                         // Water unit picker integrated
-                        Picker("", selection: $viewModel.selectedWaterUnit) {
+                        HStack(spacing: 8) {
                             ForEach(WaterUnit.allCases) { unit in
-                                Text(unit.rawValue).tag(unit)
+                                UnitPickerButton(
+                                    label: unit.rawValue,
+                                    isSelected: viewModel.selectedWaterUnit == unit
+                                ) {
+                                    viewModel.selectedWaterUnit = unit
+                                }
                             }
                         }
-                        .pickerStyle(.segmented)
                     }
                 }
-                .padding()
-                .background(Color.brewCardBackground)
-                .cornerRadius(16)
+                .padding(14)
+                .background(.ultraThinMaterial)
+                .cornerRadius(20)
+                .shadow(color: Color.black.opacity(0.15), radius: 20, x: 0, y: 10)
                 .padding(.horizontal)
                 
                 // Strength Selection with Ratios
                 VStack(alignment: .leading, spacing: 8) {
                     Text("Strength")
-                        .font(.subheadline)
+                        .font(.caption)
                         .fontWeight(.semibold)
+                        .foregroundStyle(.primary.opacity(0.8))
                     
                     HStack(spacing: 8) {
                         ForEach(BrewStrength.allCases) { strength in
@@ -105,8 +137,9 @@ struct BrewCalculatorView: View {
                 // Brew Method Selection - Expanded Grid
                 VStack(alignment: .leading, spacing: 8) {
                     Text("Brew Method")
-                        .font(.subheadline)
+                        .font(.caption)
                         .fontWeight(.semibold)
+                        .foregroundStyle(.primary.opacity(0.8))
                         .padding(.horizontal)
                         
                     LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible()), GridItem(.flexible())], spacing: 10) {
@@ -130,20 +163,23 @@ struct BrewCalculatorView: View {
                 NavigationLink(destination: CustomizationView()) {
                     HStack {
                         Image(systemName: "slider.horizontal.3")
+                            .font(.caption)
                         Text("Customize")
-                            .fontWeight(.medium)
+                            .font(.caption)
+                            .fontWeight(.semibold)
                     }
                     .frame(maxWidth: .infinity)
-                    .padding()
-                    .background(Color.brewSecondary)
-                    .foregroundStyle(Color.brewPrimary)
-                    .cornerRadius(12)
+                    .padding(12)
+                    .background(.ultraThinMaterial)
+                    .cornerRadius(14)
+                    .shadow(color: Color.black.opacity(0.12), radius: 12, x: 0, y: 6)
                 }
                 .buttonStyle(.plain)
                 .padding(.horizontal)
-                .padding(.bottom, 8)
+                .padding(.bottom, 6)
             }
             .padding(.top, 8)
+            }
         }
         .onAppear {
             // Set initial method if current one is not in selected methods
@@ -169,6 +205,7 @@ struct CompactMethodButton: View {
             VStack(spacing: 6) {
                 Image(systemName: method.icon)
                     .font(.title3)
+                    .fontWeight(.medium)
                 Text(method.rawValue)
                     .font(.caption2)
                     .lineLimit(2)
@@ -176,10 +213,25 @@ struct CompactMethodButton: View {
                     .minimumScaleFactor(0.7)
             }
             .frame(maxWidth: .infinity)
-            .frame(height: 68)
-            .background(isSelected ? Color.brewPrimary : Color.brewSecondary)
-            .foregroundStyle(isSelected ? Color.brewTextOnPrimary : .primary)
-            .cornerRadius(12)
+            .frame(height: 60)
+            .background(
+                Group {
+                    if isSelected {
+                        LinearGradient(
+                            gradient: Gradient(colors: [Color.brewPrimary, Color.brewAccent]),
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        )
+                    } else {
+                        Color.clear
+                    }
+                }
+            )
+            .background(.ultraThinMaterial)
+            .foregroundStyle(isSelected ? Color.white : .primary)
+            .cornerRadius(16)
+            .shadow(color: isSelected ? Color.brewPrimary.opacity(0.4) : Color.black.opacity(0.1), 
+                    radius: isSelected ? 15 : 8, x: 0, y: isSelected ? 8 : 4)
         }
         .buttonStyle(.plain)
     }
@@ -196,16 +248,66 @@ struct CompactStrengthButton: View {
             VStack(spacing: 4) {
                 Text(strength.rawValue)
                     .font(.body)
-                    .fontWeight(isSelected ? .semibold : .regular)
+                    .fontWeight(isSelected ? .semibold : .medium)
                 Text("1:\(String(format: "%.1f", ratio))")
                     .font(.caption)
                     .opacity(0.8)
             }
             .frame(maxWidth: .infinity)
-            .padding(.vertical, 12)
-            .background(isSelected ? Color.brewPrimary : Color.brewSecondary)
-            .foregroundStyle(isSelected ? Color.brewTextOnPrimary : .primary)
-            .cornerRadius(12)
+            .padding(.vertical, 10)
+            .background(
+                Group {
+                    if isSelected {
+                        LinearGradient(
+                            gradient: Gradient(colors: [Color.brewPrimary, Color.brewAccent]),
+                            startPoint: .leading,
+                            endPoint: .trailing
+                        )
+                    } else {
+                        Color.clear
+                    }
+                }
+            )
+            .background(.ultraThinMaterial)
+            .foregroundStyle(isSelected ? Color.white : .primary)
+            .cornerRadius(14)
+            .shadow(color: isSelected ? Color.brewPrimary.opacity(0.4) : Color.black.opacity(0.1), 
+                    radius: isSelected ? 12 : 7, x: 0, y: isSelected ? 6 : 3)
+        }
+        .buttonStyle(.plain)
+    }
+}
+
+struct UnitPickerButton: View {
+    let label: String
+    let isSelected: Bool
+    let action: () -> Void
+    
+    var body: some View {
+        Button(action: action) {
+            Text(label)
+                .font(.caption)
+                .fontWeight(isSelected ? .semibold : .medium)
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 8)
+                .background(
+                    Group {
+                        if isSelected {
+                            LinearGradient(
+                                gradient: Gradient(colors: [Color.brewPrimary, Color.brewAccent]),
+                                startPoint: .leading,
+                                endPoint: .trailing
+                            )
+                        } else {
+                            Color.clear
+                        }
+                    }
+                )
+                .background(.ultraThinMaterial)
+                .foregroundStyle(isSelected ? Color.white : .primary)
+                .cornerRadius(10)
+                .shadow(color: isSelected ? Color.brewPrimary.opacity(0.3) : Color.black.opacity(0.05), 
+                        radius: isSelected ? 8 : 4, x: 0, y: isSelected ? 4 : 2)
         }
         .buttonStyle(.plain)
     }
@@ -235,18 +337,24 @@ struct InputCard: View {
     }
     
     var body: some View {
-        VStack(alignment: .leading, spacing: 10) {
+        VStack(alignment: .leading, spacing: 8) {
             Text(label.uppercased())
-                .font(.caption)
-                .fontWeight(.medium)
+                .font(.caption2)
+                .fontWeight(.semibold)
                 .foregroundStyle(.secondary)
             
-            HStack(spacing: 12) {
+            HStack(spacing: 10) {
                 if isCalculated {
                     // Show calculated value as non-editable text
                     Text(displayText)
                         .font(.system(size: 32, weight: .bold, design: .rounded))
-                        .foregroundStyle(Color.brewAccent)
+                        .foregroundStyle(
+                            LinearGradient(
+                                gradient: Gradient(colors: [Color.brewPrimary, Color.brewAccent]),
+                                startPoint: .leading,
+                                endPoint: .trailing
+                            )
+                        )
                         .frame(maxWidth: .infinity, alignment: .leading)
                 } else {
                     // Show editable text field
@@ -256,18 +364,31 @@ struct InputCard: View {
                         #endif
                         .font(.system(size: 32, weight: .bold, design: .rounded))
                         .frame(maxWidth: .infinity)
-                        .onChange(of: input) { onEdit() }
+                        .onChange(of: input) { _, newValue in
+                            // Only allow numbers and decimal point
+                            let filtered = newValue.filter { "0123456789.".contains($0) }
+                            // Ensure only one decimal point
+                            let components = filtered.components(separatedBy: ".")
+                            if components.count > 2 {
+                                input = components[0] + "." + components[1...].joined()
+                            } else {
+                                input = filtered
+                            }
+                            onEdit()
+                        }
                 }
                 
                 Text(unit)
                     .font(.title3)
-                    .fontWeight(.medium)
-                    .foregroundStyle(.secondary)
+                    .fontWeight(.semibold)
+                    .foregroundStyle(Color.brewPrimary)
             }
         }
-        .padding()
-        .background(Color.brewSecondary.opacity(0.3))
-        .cornerRadius(12)
+        .padding(14)
+        .background(.thinMaterial)
+        .cornerRadius(14)
+        .shadow(color: Color.black.opacity(0.05), radius: 8, x: 0, y: 4)
+        .tint(Color.brewPrimary)
     }
 }
 

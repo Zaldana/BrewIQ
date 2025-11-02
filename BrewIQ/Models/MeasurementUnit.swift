@@ -9,9 +9,9 @@ import Foundation
 
 // Water units: milliliters, ounces, or 4 oz cups
 enum WaterUnit: String, CaseIterable, Codable, Identifiable {
-    case milliliters = "ml"
+    case milliliters = "mL"
     case ounces = "oz"
-    case cups = "cup (4oz)"
+    case cups = "Cups (4oz)"
     
     var id: String { rawValue }
     

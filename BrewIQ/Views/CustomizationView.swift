@@ -15,6 +15,7 @@ struct CustomizationView: View {
     @State private var selectedMethodRawValues: [String] = []
     @State private var customRatios: [String: CustomRatio] = [:]
     @State private var showingAddCustomMethod = false
+    @State private var selectedTheme: AppTheme = .auto
     
     private var userPrefs: UserPreferences {
         if let prefs = preferences.first {
@@ -27,7 +28,44 @@ struct CustomizationView: View {
     }
     
     var body: some View {
+        ZStack {
+            // Gradient Background
+            LinearGradient(
+                gradient: Gradient(colors: [
+                    Color.brewBackgroundTop,
+                    Color.brewBackgroundBottom
+                ]),
+                startPoint: .topLeading,
+                endPoint: .bottomTrailing
+            )
+            .ignoresSafeArea()
+            
         List {
+                // Theme Selection Section
+                Section {
+                    HStack(spacing: 12) {
+                        ForEach(AppTheme.allCases) { theme in
+                            ThemeButton(
+                                theme: theme,
+                                isSelected: selectedTheme == theme,
+                                onTap: {
+                                    selectedTheme = theme
+                                    savePreferences()
+                                }
+                            )
+                        }
+                    }
+                    .padding(.vertical, 8)
+                } header: {
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text("Appearance")
+                        Text("Choose your preferred theme")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                            .textCase(.none)
+                    }
+                }
+                
                 // Method Selection Section
                 Section {
                     LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible()), GridItem(.flexible())], spacing: 10) {
@@ -92,10 +130,12 @@ struct CustomizationView: View {
                     }
                 }
         }
+        .scrollContentBackground(.hidden)
         .navigationTitle("Customize")
         #if os(iOS)
         .navigationBarTitleDisplayMode(.inline)
         #endif
+        }
         .sheet(isPresented: $showingAddCustomMethod) {
             AddCustomMethodView { customMethod in
                 userPrefs.customMethods.append(customMethod)
@@ -105,6 +145,7 @@ struct CustomizationView: View {
         .onAppear {
             selectedMethodRawValues = userPrefs.selectedMethodRawValues
             customRatios = userPrefs.customRatios
+            selectedTheme = userPrefs.theme
         }
         .onDisappear {
             savePreferences()
@@ -122,6 +163,7 @@ struct CustomizationView: View {
     private func savePreferences() {
         userPrefs.selectedMethodRawValues = selectedMethodRawValues
         userPrefs.customRatios = customRatios
+        userPrefs.theme = selectedTheme
         try? modelContext.save()
     }
     
@@ -150,10 +192,25 @@ struct MethodSelectionButton: View {
                     .minimumScaleFactor(0.7)
             }
             .frame(maxWidth: .infinity)
-            .frame(height: 68)
-            .background(isSelected ? Color.brewPrimary : Color.brewSecondary)
-            .foregroundStyle(isSelected ? Color.brewTextOnPrimary : .primary)
-            .cornerRadius(12)
+            .frame(height: 70)
+            .background(
+                Group {
+                    if isSelected {
+                        LinearGradient(
+                            gradient: Gradient(colors: [Color.brewPrimary, Color.brewAccent]),
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        )
+                    } else {
+                        Color.clear
+                    }
+                }
+            )
+            .background(.ultraThinMaterial)
+            .foregroundStyle(isSelected ? Color.white : .primary)
+            .cornerRadius(16)
+            .shadow(color: isSelected ? Color.brewPrimary.opacity(0.3) : Color.black.opacity(0.05), 
+                    radius: isSelected ? 12 : 6, x: 0, y: isSelected ? 6 : 3)
         }
         .buttonStyle(.plain)
     }
@@ -241,9 +298,9 @@ struct RatioDisclosureGroup: View {
                             .font(.body)
                             .frame(maxWidth: .infinity)
                             .padding(.vertical, 12)
-                            .background(Color.brewSecondary)
+                            .background(.ultraThinMaterial)
                             .foregroundStyle(Color.primary)
-                            .cornerRadius(10)
+                            .cornerRadius(12)
                     }
                     .buttonStyle(.plain)
                     
@@ -260,9 +317,22 @@ struct RatioDisclosureGroup: View {
                             .fontWeight(.semibold)
                             .frame(maxWidth: .infinity)
                             .padding(.vertical, 12)
-                            .background(isValid ? Color.brewPrimary : Color.brewSecondary)
-                            .foregroundStyle(isValid ? Color.brewTextOnPrimary : Color.primary.opacity(0.5))
-                            .cornerRadius(10)
+                            .background(
+                                isValid ? 
+                                LinearGradient(
+                                    gradient: Gradient(colors: [Color.brewPrimary, Color.brewAccent]),
+                                    startPoint: .leading,
+                                    endPoint: .trailing
+                                ) : LinearGradient(
+                                    gradient: Gradient(colors: [Color.gray.opacity(0.3), Color.gray.opacity(0.3)]),
+                                    startPoint: .leading,
+                                    endPoint: .trailing
+                                )
+                            )
+                            .foregroundStyle(isValid ? Color.white : Color.primary.opacity(0.5))
+                            .cornerRadius(12)
+                            .shadow(color: isValid ? Color.brewPrimary.opacity(0.3) : Color.clear, 
+                                    radius: isValid ? 8 : 0, x: 0, y: isValid ? 4 : 0)
                     }
                     .buttonStyle(.plain)
                     .disabled(!isValid)
@@ -424,6 +494,47 @@ struct AddCustomMethodView: View {
         Double(mildRatio) != nil &&
         Double(mediumRatio) != nil &&
         Double(boldRatio) != nil
+    }
+}
+
+// MARK: - Theme Button
+struct ThemeButton: View {
+    let theme: AppTheme
+    let isSelected: Bool
+    let onTap: () -> Void
+    
+    var body: some View {
+        Button(action: onTap) {
+            VStack(spacing: 8) {
+                Image(systemName: theme.icon)
+                    .font(.title2)
+                    .fontWeight(.medium)
+                Text(theme.rawValue)
+                    .font(.subheadline)
+                    .fontWeight(isSelected ? .semibold : .regular)
+            }
+            .frame(maxWidth: .infinity)
+            .padding(.vertical, 16)
+            .background(
+                Group {
+                    if isSelected {
+                        LinearGradient(
+                            gradient: Gradient(colors: [Color.brewPrimary, Color.brewAccent]),
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        )
+                    } else {
+                        Color.clear
+                    }
+                }
+            )
+            .background(.ultraThinMaterial)
+            .foregroundStyle(isSelected ? Color.white : .primary)
+            .cornerRadius(16)
+            .shadow(color: isSelected ? Color.brewPrimary.opacity(0.3) : Color.black.opacity(0.05), 
+                    radius: isSelected ? 12 : 6, x: 0, y: isSelected ? 6 : 3)
+        }
+        .buttonStyle(.plain)
     }
 }
 
