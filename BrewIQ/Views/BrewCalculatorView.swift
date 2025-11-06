@@ -12,6 +12,7 @@ struct BrewCalculatorView: View {
     @Environment(\.modelContext) private var modelContext
     @Query private var preferences: [UserPreferences]
     @State private var viewModel = BrewCalculatorViewModel()
+    @State private var isBrewNotesExpanded = false
     
     private var userPrefs: UserPreferences {
         if let prefs = preferences.first {
@@ -41,9 +42,10 @@ struct BrewCalculatorView: View {
                 )
                 .ignoresSafeArea()
                 
-                VStack(spacing: 12) {
-                // App Title
-                Text("brewIQ")
+                ScrollView {
+                    VStack(spacing: 12) {
+                    // App Title
+                    Text("brewIQ")
                     .font(.system(size: 20, weight: .bold))
                     .foregroundStyle(
                         LinearGradient(
@@ -157,6 +159,50 @@ struct BrewCalculatorView: View {
                     .padding(.horizontal)
                 }
                 
+                // Brew Notes Accordion
+                VStack(spacing: 8) {
+                    Button(action: {
+                        withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
+                            isBrewNotesExpanded.toggle()
+                        }
+                    }) {
+                        HStack {
+                            Text("Brew Notes")
+                                .font(.caption)
+                                .fontWeight(.semibold)
+                                .foregroundStyle(.primary.opacity(0.8))
+                            
+                            Spacer()
+                            
+                            Image(systemName: "chevron.down")
+                                .font(.caption)
+                                .foregroundStyle(.primary.opacity(0.6))
+                                .rotationEffect(.degrees(isBrewNotesExpanded ? 180 : 0))
+                        }
+                        .padding()
+                        .background(.ultraThinMaterial)
+                        .cornerRadius(14)
+                        .shadow(color: Color.black.opacity(0.1), radius: 8, x: 0, y: 4)
+                    }
+                    .buttonStyle(.plain)
+                    
+                    if isBrewNotesExpanded {
+                        VStack(alignment: .leading, spacing: 8) {
+                            Text(viewModel.selectedMethod.brewNotes)
+                                .font(.caption)
+                                .foregroundStyle(.primary.opacity(0.9))
+                                .lineSpacing(4)
+                        }
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .padding()
+                        .background(.ultraThinMaterial)
+                        .cornerRadius(14)
+                        .shadow(color: Color.black.opacity(0.1), radius: 8, x: 0, y: 4)
+                        .transition(.move(edge: .top).combined(with: .opacity))
+                    }
+                }
+                .padding(.horizontal)
+                
                 Spacer(minLength: 0)
                 
                 // Customize Button
@@ -177,8 +223,9 @@ struct BrewCalculatorView: View {
                 .buttonStyle(.plain)
                 .padding(.horizontal)
                 .padding(.bottom, 6)
-            }
-            .padding(.top, 8)
+                }
+                .padding(.top, 8)
+                }
             }
         }
         .onAppear {
