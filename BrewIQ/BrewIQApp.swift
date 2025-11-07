@@ -20,7 +20,19 @@ struct BrewIQApp: App {
         do {
             return try ModelContainer(for: schema, configurations: [modelConfiguration])
         } catch {
-            fatalError("Could not create ModelContainer: \(error)")
+            // If migration fails, try to reset the data store
+            print("ModelContainer creation failed, attempting to reset data store: \(error)")
+            
+            // Get the default store URL and delete it
+            let url = modelConfiguration.url
+            try? FileManager.default.removeItem(at: url)
+            
+            // Try again with fresh container
+            do {
+                return try ModelContainer(for: schema, configurations: [modelConfiguration])
+            } catch {
+                fatalError("Could not create ModelContainer even after reset: \(error)")
+            }
         }
     }()
 

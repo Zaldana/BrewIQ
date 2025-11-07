@@ -28,6 +28,7 @@ enum AppTheme: String, Codable, CaseIterable, Identifiable {
 final class UserPreferences {
     var selectedMethodRawValues: [String] // Store selected brew method IDs (max 6)
     var customRatios: [String: CustomRatio] // Method rawValue -> CustomRatio
+    var customBrewNotes: [String: String] // Method rawValue -> Custom Notes
     var customMethods: [CustomBrewMethodData]
     var themeRawValue: String = AppTheme.auto.rawValue // Store theme preference with default
     
@@ -45,6 +46,7 @@ final class UserPreferences {
             "Pour Over"
         ]
         self.customRatios = [:]
+        self.customBrewNotes = [:]
         self.customMethods = []
         self.themeRawValue = AppTheme.auto.rawValue
     }
@@ -67,6 +69,10 @@ final class UserPreferences {
             }
         }
         return method.ratio(for: strength)
+    }
+    
+    func getBrewNotes(for method: BrewMethod) -> String {
+        return customBrewNotes[method.rawValue] ?? method.brewNotes
     }
 }
 

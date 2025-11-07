@@ -44,9 +44,10 @@ struct BrewCalculatorView: View {
                 
                 ScrollView {
                     VStack(spacing: 12) {
-                    // App Title
+                // App Title
                     Text("brewIQ")
-                    .font(.system(size: 20, weight: .bold))
+                    .font(.title2)
+                    .fontWeight(.bold)
                     .foregroundStyle(
                         LinearGradient(
                             gradient: Gradient(colors: [Color.brewPrimary, Color.brewAccent]),
@@ -57,6 +58,7 @@ struct BrewCalculatorView: View {
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .padding(.horizontal)
                     .padding(.top, 4)
+                    .accessibilityAddTraits(.isHeader)
                 
                 // Calculator Card - Coffee and Water Fields
                 VStack(spacing: 6) {
@@ -76,7 +78,7 @@ struct BrewCalculatorView: View {
                             .fill(Color.secondary.opacity(0.3))
                             .frame(height: 1)
                         Text("OR")
-                            .font(.caption2)
+                            .font(.footnote)
                             .foregroundStyle(.secondary)
                             .padding(.horizontal, 8)
                         Rectangle()
@@ -118,9 +120,9 @@ struct BrewCalculatorView: View {
                 // Strength Selection with Ratios
                 VStack(alignment: .leading, spacing: 8) {
                     Text("Strength")
-                        .font(.caption)
+                        .font(.subheadline)
                         .fontWeight(.semibold)
-                        .foregroundStyle(.primary.opacity(0.8))
+                        .foregroundStyle(.primary.opacity(0.85))
                     
                     HStack(spacing: 8) {
                         ForEach(BrewStrength.allCases) { strength in
@@ -139,9 +141,9 @@ struct BrewCalculatorView: View {
                 // Brew Method Selection - Expanded Grid
                 VStack(alignment: .leading, spacing: 8) {
                     Text("Brew Method")
-                        .font(.caption)
+                        .font(.subheadline)
                         .fontWeight(.semibold)
-                        .foregroundStyle(.primary.opacity(0.8))
+                        .foregroundStyle(.primary.opacity(0.85))
                         .padding(.horizontal)
                         
                     LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible()), GridItem(.flexible())], spacing: 10) {
@@ -168,16 +170,17 @@ struct BrewCalculatorView: View {
                     }) {
                         HStack {
                             Text("Brew Notes")
-                                .font(.caption)
+                                .font(.subheadline)
                                 .fontWeight(.semibold)
-                                .foregroundStyle(.primary.opacity(0.8))
+                                .foregroundStyle(.primary.opacity(0.85))
                             
                             Spacer()
                             
                             Image(systemName: "chevron.down")
-                                .font(.caption)
+                                .font(.subheadline)
                                 .foregroundStyle(.primary.opacity(0.6))
                                 .rotationEffect(.degrees(isBrewNotesExpanded ? 180 : 0))
+                                .accessibilityHidden(true)
                         }
                         .padding()
                         .background(.ultraThinMaterial)
@@ -185,11 +188,13 @@ struct BrewCalculatorView: View {
                         .shadow(color: Color.black.opacity(0.1), radius: 8, x: 0, y: 4)
                     }
                     .buttonStyle(.plain)
+                    .accessibilityLabel("Brew Notes")
+                    .accessibilityHint(isBrewNotesExpanded ? "Expanded. Tap to collapse" : "Collapsed. Tap to expand")
                     
                     if isBrewNotesExpanded {
                         VStack(alignment: .leading, spacing: 8) {
-                            Text(viewModel.selectedMethod.brewNotes)
-                                .font(.caption)
+                            Text(userPrefs.getBrewNotes(for: viewModel.selectedMethod))
+                                .font(.body)
                                 .foregroundStyle(.primary.opacity(0.9))
                                 .lineSpacing(4)
                         }
@@ -209,9 +214,10 @@ struct BrewCalculatorView: View {
                 NavigationLink(destination: CustomizationView()) {
                     HStack {
                         Image(systemName: "slider.horizontal.3")
-                            .font(.caption)
+                            .font(.body)
+                            .accessibilityHidden(true)
                         Text("Customize")
-                            .font(.caption)
+                            .font(.body)
                             .fontWeight(.semibold)
                     }
                     .frame(maxWidth: .infinity)
@@ -253,14 +259,15 @@ struct CompactMethodButton: View {
                 Image(systemName: method.icon)
                     .font(.title3)
                     .fontWeight(.medium)
+                    .accessibilityHidden(true)
                 Text(method.rawValue)
-                    .font(.caption2)
+                    .font(.footnote)
                     .lineLimit(2)
                     .multilineTextAlignment(.center)
-                    .minimumScaleFactor(0.7)
+                    .minimumScaleFactor(0.8)
             }
             .frame(maxWidth: .infinity)
-            .frame(height: 60)
+            .frame(minHeight: 70)
             .background(
                 Group {
                     if isSelected {
@@ -277,10 +284,15 @@ struct CompactMethodButton: View {
             .background(.ultraThinMaterial)
             .foregroundStyle(isSelected ? Color.white : .primary)
             .cornerRadius(16)
-            .shadow(color: isSelected ? Color.brewPrimary.opacity(0.4) : Color.black.opacity(0.1), 
-                    radius: isSelected ? 15 : 8, x: 0, y: isSelected ? 8 : 4)
+            .shadow(color: isSelected ? Color.brewPrimary.opacity(0.45) : Color.black.opacity(0.075), 
+                    radius: isSelected ? 15 : 4.5, x: 0, y: isSelected ? 7.5 : 2.25)
+            .shadow(color: isSelected ? Color.brewPrimary.opacity(0.3) : Color.clear, 
+                    radius: isSelected ? 7.5 : 0, x: 0, y: isSelected ? 3.75 : 0)
         }
         .buttonStyle(.plain)
+        .accessibilityLabel("\(method.rawValue), ratio 1 to \(String(format: "%.1f", ratio))")
+        .accessibilityAddTraits(isSelected ? .isSelected : [])
+        .accessibilityHint(isSelected ? "Currently selected brew method" : "Tap to select this brew method")
     }
 }
 
@@ -297,10 +309,11 @@ struct CompactStrengthButton: View {
                     .font(.body)
                     .fontWeight(isSelected ? .semibold : .medium)
                 Text("1:\(String(format: "%.1f", ratio))")
-                    .font(.caption)
-                    .opacity(0.8)
+                    .font(.subheadline)
+                    .opacity(0.85)
             }
             .frame(maxWidth: .infinity)
+            .frame(minHeight: 50)
             .padding(.vertical, 10)
             .background(
                 Group {
@@ -318,10 +331,15 @@ struct CompactStrengthButton: View {
             .background(.ultraThinMaterial)
             .foregroundStyle(isSelected ? Color.white : .primary)
             .cornerRadius(14)
-            .shadow(color: isSelected ? Color.brewPrimary.opacity(0.4) : Color.black.opacity(0.1), 
-                    radius: isSelected ? 12 : 7, x: 0, y: isSelected ? 6 : 3)
+            .shadow(color: isSelected ? Color.brewPrimary.opacity(0.45) : Color.black.opacity(0.075), 
+                    radius: isSelected ? 12 : 3.75, x: 0, y: isSelected ? 6 : 1.5)
+            .shadow(color: isSelected ? Color.brewPrimary.opacity(0.225) : Color.clear, 
+                    radius: isSelected ? 6 : 0, x: 0, y: isSelected ? 3 : 0)
         }
         .buttonStyle(.plain)
+        .accessibilityLabel("\(strength.rawValue) strength, ratio 1 to \(String(format: "%.1f", ratio))")
+        .accessibilityAddTraits(isSelected ? .isSelected : [])
+        .accessibilityHint(isSelected ? "Currently selected strength" : "Tap to select \(strength.rawValue) strength")
     }
 }
 
@@ -333,9 +351,10 @@ struct UnitPickerButton: View {
     var body: some View {
         Button(action: action) {
             Text(label)
-                .font(.caption)
+                .font(.subheadline)
                 .fontWeight(isSelected ? .semibold : .medium)
                 .frame(maxWidth: .infinity)
+                .frame(minHeight: 44)
                 .padding(.vertical, 8)
                 .background(
                     Group {
@@ -353,10 +372,15 @@ struct UnitPickerButton: View {
                 .background(.ultraThinMaterial)
                 .foregroundStyle(isSelected ? Color.white : .primary)
                 .cornerRadius(10)
-                .shadow(color: isSelected ? Color.brewPrimary.opacity(0.3) : Color.black.opacity(0.05), 
-                        radius: isSelected ? 8 : 4, x: 0, y: isSelected ? 4 : 2)
+                .shadow(color: isSelected ? Color.brewPrimary.opacity(0.375) : Color.black.opacity(0.06), 
+                        radius: isSelected ? 9 : 2.25, x: 0, y: isSelected ? 4.5 : 0.75)
+                .shadow(color: isSelected ? Color.brewPrimary.opacity(0.225) : Color.clear, 
+                        radius: isSelected ? 4.5 : 0, x: 0, y: isSelected ? 2.25 : 0)
         }
         .buttonStyle(.plain)
+        .accessibilityLabel(label)
+        .accessibilityAddTraits(isSelected ? .isSelected : [])
+        .accessibilityHint(isSelected ? "Currently selected unit" : "Tap to select \(label) unit")
     }
 }
 
@@ -367,6 +391,7 @@ struct InputCard: View {
     let calculatedValue: Double?
     let onEdit: () -> Void
     let formatValue: (Double?) -> String
+    @ScaledMetric private var inputFontSize: CGFloat = 32
     
     // Computed property to determine display text
     private var displayText: String {
@@ -386,7 +411,7 @@ struct InputCard: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             Text(label.uppercased())
-                .font(.caption2)
+                .font(.footnote)
                 .fontWeight(.semibold)
                 .foregroundStyle(.secondary)
             
@@ -394,7 +419,7 @@ struct InputCard: View {
                 if isCalculated {
                     // Show calculated value as non-editable text
                     Text(displayText)
-                        .font(.system(size: 32, weight: .bold, design: .rounded))
+                        .font(.system(size: inputFontSize, weight: .bold, design: .rounded))
                         .foregroundStyle(
                             LinearGradient(
                                 gradient: Gradient(colors: [Color.brewPrimary, Color.brewAccent]),
@@ -409,7 +434,7 @@ struct InputCard: View {
                         #if os(iOS)
                         .keyboardType(.decimalPad)
                         #endif
-                        .font(.system(size: 32, weight: .bold, design: .rounded))
+                        .font(.system(size: inputFontSize, weight: .bold, design: .rounded))
                         .frame(maxWidth: .infinity)
                         .onChange(of: input) { _, newValue in
                             // Only allow numbers and decimal point
