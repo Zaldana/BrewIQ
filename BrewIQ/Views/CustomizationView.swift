@@ -17,6 +17,7 @@ struct CustomizationView: View {
     @State private var customBrewNotes: [String: String] = [:]
     @State private var showingAddCustomMethod = false
     @State private var selectedTheme: AppTheme = .auto
+    @State private var isLoaded = false
     
     private var userPrefs: UserPreferences {
         if let prefs = preferences.first {
@@ -79,6 +80,7 @@ struct CustomizationView: View {
                         }
                     }
                     .padding(.vertical, 8)
+                    .id(isLoaded)
                 } header: {
                     VStack(alignment: .leading, spacing: 4) {
                         Text("Select Brew Methods")
@@ -155,10 +157,14 @@ struct CustomizationView: View {
             }
         }
         .onAppear {
-            selectedMethodRawValues = userPrefs.selectedMethodRawValues
-            customRatios = userPrefs.customRatios
-            customBrewNotes = userPrefs.customBrewNotes
-            selectedTheme = userPrefs.theme
+            loadPreferences()
+            // Force view update after loading
+            DispatchQueue.main.async {
+                isLoaded.toggle()
+            }
+        }
+        .onChange(of: userPrefs.selectedMethodRawValues) { _, newValue in
+            selectedMethodRawValues = newValue
         }
         .onDisappear {
             savePreferences()
@@ -171,6 +177,13 @@ struct CustomizationView: View {
         } else if selectedMethodRawValues.count < 9 {
             selectedMethodRawValues.append(method.rawValue)
         }
+    }
+    
+    private func loadPreferences() {
+        selectedMethodRawValues = userPrefs.selectedMethodRawValues
+        customRatios = userPrefs.customRatios
+        customBrewNotes = userPrefs.customBrewNotes
+        selectedTheme = userPrefs.theme
     }
     
     private func savePreferences() {

@@ -69,84 +69,72 @@ enum BrewMethod: String, CaseIterable, Codable, Identifiable {
         case .pourOver:
             return """
             • Grind: Medium-fine
-            • Ratio: 1:16
             • Bloom 30s, then slow circular pours
             • Total: 3–4 min
             """
         case .frenchPress:
             return """
             • Grind: Coarse
-            • Ratio: 1:15
             • Add water, stir, steep 4 min
             • Press slowly
             """
         case .aeroPress:
             return """
             • Grind: Fine-medium
-            • Ratio: 1:14
             • Add water, stir 10s, steep 1 min
             • Press 20s
             """
         case .harioV60:
             return """
             • Grind: Medium-fine
-            • Ratio: 1:15
             • Bloom 30s, slow spiral pours
             • Total: 2.5–3 min
             """
         case .chemex:
             return """
             • Grind: Medium-coarse
-            • Ratio: 1:16
             • Bloom 45s, pour in stages
             • Total: 4–5 min
             """
         case .kalitaWave:
             return """
             • Grind: Medium
-            • Ratio: 1:15
             • Bloom 30s, pulse pour evenly
             • Total: ~3 min
             """
         case .cleverDripper:
             return """
             • Grind: Medium
-            • Ratio: 1:15
             • Add water, steep 2:30–3:00, drain
             • Total: ~3:30
             """
         case .siphonCoffee:
             return """
             • Grind: Medium
-            • Ratio: 1:15
             • Heat until water rises, add coffee, stir
             • Brew 1 min, remove heat, let draw down
             """
         case .vacuumCoffee:
             return """
             • Grind: Medium
-            • Ratio: 1:15
             • Heat, mix coffee, allow vacuum to pull down
             • Stop when drawdown is clean
             """
         case .mokaPot:
             return """
             • Grind: Fine (not espresso)
-            • Ratio: ~1:7
             • Fill base (below valve), add basket
             • Brew on medium heat until hissing
             """
         case .dripCoffee:
             return """
             • Grind: Medium
-            • Ratio: 1:15
             • Add water, grounds, and filter
             • Brew 4–6 min
             """
         case .percolation:
             return """
             • Grind: Medium-coarse
-            • Ratio: 1:17
             • Add coffee basket, cold water
             • Heat gently, perk 5–7 min
             """

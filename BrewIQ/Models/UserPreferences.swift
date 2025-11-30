@@ -72,7 +72,29 @@ final class UserPreferences {
     }
     
     func getBrewNotes(for method: BrewMethod) -> String {
-        return customBrewNotes[method.rawValue] ?? method.brewNotes
+        // Return custom notes formatted as bullets, or default notes as-is
+        if let customNotes = customBrewNotes[method.rawValue] {
+            return formatCustomNotesAsBullets(customNotes)
+        }
+        return method.brewNotes
+    }
+    
+    private func formatCustomNotesAsBullets(_ notes: String) -> String {
+        // Split by newlines and format each line as a bullet point
+        let lines = notes.components(separatedBy: .newlines)
+            .map { $0.trimmingCharacters(in: .whitespaces) }
+            .filter { !$0.isEmpty }
+        
+        // Convert -, * to • and add bullets to plain lines
+        return lines.map { line in
+            if line.hasPrefix("•") {
+                return line
+            } else if line.hasPrefix("-") || line.hasPrefix("*") {
+                return "• " + line.dropFirst().trimmingCharacters(in: .whitespaces)
+            } else {
+                return "• \(line)"
+            }
+        }.joined(separator: "\n")
     }
 }
 
